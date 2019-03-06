@@ -1,0 +1,12 @@
+{
+  "cloudEventsVersion": "0.1",
+  "eventType": "io.mechanicalrock.rivers-rapids-serverless.foo",
+  "eventTypeVersion": "1.0",
+  "source": "io.mechanicalrock.rivers-rapids-serverless/publishEvents",
+  "eventID": "C234-1234-1234",
+  "eventTime": "2018-04-05T17:31:00Z",
+  "contentType": "application/json",
+  "data": {
+      "message": "foo"
+  }
+}
