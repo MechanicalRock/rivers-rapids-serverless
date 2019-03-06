@@ -1,6 +1,5 @@
 import { CloudEventSpec, build } from './cloudEvents';
 import { EventTypes } from './serviceEvents';
-
 import { simpleHandler } from './aws/lambdaHandler' 
 
 export async function handler() {
@@ -8,20 +7,13 @@ export async function handler() {
 }
 
 export async function service(): Promise<CloudEventSpec<any>[]> {
-  const eventSource = 'io.mechanicalrock.rivers-rapids-serverless/publishEvents'
-  const foo = build({
-    eventType: EventTypes.FOO,
+  const eventSource = 'io.mechanicalrock.rivers-rapids-serverless/init'
+  const init = build({
+    eventType: EventTypes.INIT,
     source: eventSource,
     data: {
-      message: 'foo',
+      message: 'init',
     }
   })
-  const bar = build({
-    eventType: EventTypes.BAR,
-    source: eventSource,
-    data: {
-      message: 'bar',
-    }
-  })
-  return [foo, bar]
+  return [init]
 }

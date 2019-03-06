@@ -22,17 +22,30 @@ provider:
     STAGE: ${self:custom.stage}
     # All services publish to the same rapids topic
     RAPIDS_TOPIC: ${self:custom.topicArn}
+  iamRoleStatements:
+    -  Effect: "Allow"
+       Action:
+         - "sns:Publish"
+       Resource: 
+         - ${self:custom.topicArn}
 package:
   excludeDevDependencies: true
   individually: true
 
 functions:
+  init:
+    handler: src/init.handler
   publish-events:
     handler: src/publishEvents.handler
+    events:
+      - sns:
+          arn: ${self:custom.topicArn}
+          filterPolicy:
+            eventType: 
+              - io.mechanicalrock.rivers-rapids-serverless.init
   event-log:
     handler: src/eventLog.handler
     events:
-      # Subscribes to all events
       - sns:
           arn: ${self:custom.topicArn}
   foo-subscriber:
@@ -44,7 +57,7 @@ functions:
             eventType: 
               - io.mechanicalrock.rivers-rapids-serverless.foo
   bar-subscriber:
-    handler: src/barSubscriber.handler
+    handler: src/eventLog.handler
     events:
       - sns:
           arn: ${self:custom.topicArn}
@@ -52,7 +65,7 @@ functions:
             eventType: 
               - io.mechanicalrock.rivers-rapids-serverless.bar
   baz-subscriber:
-    handler: src/bazSubscriber.handler
+    handler: src/eventLog.handler
     events:
       - sns:
           arn: ${self:custom.topicArn}
@@ -66,6 +79,64 @@ resources:
       Type: 'AWS::SNS::Topic'
       Properties:
         TopicName: ${self:custom.topic}
+    Dashboard:
+      Type: AWS::CloudWatch::Dashboard
+      Properties:
+            DashboardName: rivers-rapids-serverless
+            DashboardBody: |
+              {
+                "widgets": [
+                    {
+                        "type": "metric",
+                        "x": 0,
+                        "y": 3,
+                        "width": 18,
+                        "height": 3,
+                        "properties": {
+                            "metrics": [
+                                [ "AWS/Lambda", "Invocations", "FunctionName", "rivers-rapids-serverless-${self:custom.stage}-init", { "stat": "Sum", "period": 86400, "label": "init" } ],
+                                [ "AWS/Lambda", "Invocations", "FunctionName", "rivers-rapids-serverless-${self:custom.stage}-publish-events", { "stat": "Sum", "period": 86400, "label": "publish-events" } ],
+                                [ "...", "rivers-rapids-serverless-${self:custom.stage}-event-log", { "stat": "Sum", "period": 86400, "label": "event-log" } ],
+                                [ "...", "rivers-rapids-serverless-${self:custom.stage}-foo-subscriber", { "period": 86400, "stat": "Sum", "label": "foo-subscriber" } ],
+                                [ "...", "rivers-rapids-serverless-${self:custom.stage}-bar-subscriber", { "period": 86400, "stat": "Sum", "label": "bar-subscriber" } ],
+                                [ "...", "rivers-rapids-serverless-${self:custom.stage}-baz-subscriber", { "period": 86400, "stat": "Sum", "label": "baz-subscriber" } ]
+                            ],
+                            "view": "singleValue",
+                            "stacked": false,
+                            "region": "ap-southeast-2",
+                            "yAxis": {
+                                "left": {
+                                    "showUnits": true
+                                }
+                            },
+                            "title": "Invocations",
+                            "period": 300
+                        }
+                    },
+                    {
+                        "type": "metric",
+                        "x": 0,
+                        "y": 6,
+                        "width": 18,
+                        "height": 3,
+                        "properties": {
+                            "metrics": [
+                                [ "AWS/Lambda", "Errors", "FunctionName", "rivers-rapids-serverless-${self:custom.stage}-init", { "period": 86400, "stat": "Sum", "label": "init" } ],
+                                [ "AWS/Lambda", "Errors", "FunctionName", "rivers-rapids-serverless-${self:custom.stage}-publish-events", { "stat": "Sum", "period": 86400, "label": "publish-events" } ],
+                                [ "...", "rivers-rapids-serverless-${self:custom.stage}-event-log", { "period": 86400, "stat": "Sum", "label": "event-log" } ],
+                                [ "...", "rivers-rapids-serverless-${self:custom.stage}-foo-subscriber", { "period": 86400, "stat": "Sum", "label": "foo-subscriber" } ],
+                                [ "...", "rivers-rapids-serverless-${self:custom.stage}-bar-subscriber", { "period": 86400, "stat": "Sum", "label": "bar-subscriber" } ],
+                                [ "...", "rivers-rapids-serverless-${self:custom.stage}-baz-subscriber", { "period": 86400, "stat": "Sum", "label": "baz-subscriber" } ]
+                            ],
+                            "view": "singleValue",
+                            "region": "ap-southeast-2",
+                            "title": "Errors 1d",
+                            "period": 300
+                        }
+                    }
+                ]
+              }
+
   Outputs:
     RapidsTopicArn:
       Description: 'ARN for the Rapids Topic'

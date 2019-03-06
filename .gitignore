@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Logs
 logs
 *.log
@@ -62,3 +63,7 @@ typings/
 
 # Serverless
 .serverless/
+=======
+node_modules
+.serverless
+>>>>>>> Initial Version

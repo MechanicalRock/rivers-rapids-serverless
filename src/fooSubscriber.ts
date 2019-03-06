@@ -8,20 +8,13 @@ export async function handler() {
 }
 
 export async function service(): Promise<CloudEventSpec<any>[]> {
-  const eventSource = 'io.mechanicalrock.rivers-rapids-serverless/publishEvents'
-  const foo = build({
-    eventType: EventTypes.FOO,
+  const eventSource = 'io.mechanicalrock.rivers-rapids-serverless/fooSubscriber'
+  const baz = build({
+    eventType: EventTypes.BAZ,
     source: eventSource,
     data: {
-      message: 'foo',
+      message: 'baz',
     }
   })
-  const bar = build({
-    eventType: EventTypes.BAR,
-    source: eventSource,
-    data: {
-      message: 'bar',
-    }
-  })
-  return [foo, bar]
+  return [baz]
 }
