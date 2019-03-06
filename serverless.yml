@@ -1,0 +1,77 @@
+service: rivers-rapids-serverless
+custom:
+  stage: '${opt:stage,''dev''}'
+  topic: rivers-rapids-serverless
+  topicArn: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:rivers-rapids-serverless
+  webpack:
+    webpackConfig: 'webpack.config.js'
+    includeModules:
+      forceExclude:
+        - aws-sdk
+    packager: npm
+    packagerOptions:
+      scripts:
+        - rm -rf node_modules/aws-sdk
+
+provider:
+  memorySize: 128
+  name: aws
+  runtime: nodejs8.10
+  region: ap-southeast-2
+  environment:
+    STAGE: ${self:custom.stage}
+    # All services publish to the same rapids topic
+    RAPIDS_TOPIC: ${self:custom.topicArn}
+package:
+  excludeDevDependencies: true
+  individually: true
+
+functions:
+  publish-events:
+    handler: src/publishEvents.handler
+  event-log:
+    handler: src/eventLog.handler
+    events:
+      # Subscribes to all events
+      - sns:
+          arn: ${self:custom.topicArn}
+  foo-subscriber:
+    handler: src/fooSubscriber.handler
+    events:
+      - sns:
+          arn: ${self:custom.topicArn}
+          filterPolicy:
+            eventType: 
+              - io.mechanicalrock.rivers-rapids-serverless.foo
+  bar-subscriber:
+    handler: src/barSubscriber.handler
+    events:
+      - sns:
+          arn: ${self:custom.topicArn}
+          filterPolicy:
+            eventType: 
+              - io.mechanicalrock.rivers-rapids-serverless.bar
+  baz-subscriber:
+    handler: src/bazSubscriber.handler
+    events:
+      - sns:
+          arn: ${self:custom.topicArn}
+          filterPolicy:
+            eventType: 
+              - io.mechanicalrock.rivers-rapids-serverless.baz
+
+resources:
+  Resources:
+    RapidsTopic:
+      Type: 'AWS::SNS::Topic'
+      Properties:
+        TopicName: ${self:custom.topic}
+  Outputs:
+    RapidsTopicArn:
+      Description: 'ARN for the Rapids Topic'
+      Value: 
+        Ref: RapidsTopic
+
+plugins:
+  - serverless-webpack
+  - serverless-pseudo-parameters
