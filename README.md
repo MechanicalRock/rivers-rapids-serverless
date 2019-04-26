@@ -1,5 +1,13 @@
 # rivers-rapids-serverless
 
+## Security Notice
+
+Please note, that this repository is for reference purposes only and is not under active development.
+Therefore, project dependencies may include known security vulnerabilities.
+Use at your own risk.
+
+# Introduction
+
 A sample implementation of the Rivers-Rapids pattern described by [Freg George](http://yowconference.com.au/slides/yow2014/George-ImplementingMicroserviceArchitectures.pdf) using SNS
 
 
